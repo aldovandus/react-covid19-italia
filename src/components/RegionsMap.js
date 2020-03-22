@@ -205,7 +205,6 @@ export default function AllCities() {
   const onChangeSlider = useCallback((event, value) => {
     setAndamento(andamentoCompleto.filter(o => o.data === andamentoCompleto[value].data))
     setCount(value);
-    console.log(value)
   }, [andamentoCompleto])
 
 
@@ -220,7 +219,7 @@ export default function AllCities() {
       label:  `${initialDate.getUTCDate()}/${initialDate.getUTCMonth() + 1}`
     },
     {
-      value: 566,
+      value: andamentoCompleto.length-1,
       label: `${lastDate.getUTCDate()}/${lastDate.getUTCMonth() + 1}`
     }
     ]
