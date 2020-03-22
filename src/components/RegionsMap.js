@@ -1,23 +1,19 @@
-import React, { useState, useEffect, useCallback } from "react";
-import PropTypes from 'prop-types';
+import React, { useEffect, useCallback } from "react";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { lighten, makeStyles } from '@material-ui/core/styles';
+import {makeStyles } from '@material-ui/core/styles';
 import Paper from "@material-ui/core/Paper";
 import Button from '@material-ui/core/Button';
 import Typography from "@material-ui/core/Typography";
 import Topbar from "./Topbar";
 import Grid from "@material-ui/core/Grid";
 import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import PauseIcon from '@material-ui/icons/Pause';
 import StopIcon from '@material-ui/icons/Stop';
+import Slider from '@material-ui/core/Slider';
 import "./styles/Map.scss";
-
-
 
 
 
@@ -28,8 +24,6 @@ const backgroundShape = require("../images/shape.svg");
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
-  },
-  root: {
     flexGrow: 1,
     backgroundColor: theme.palette.grey["100"],
     overflow: "hidden",
@@ -81,12 +75,6 @@ const useStyles = makeStyles(theme => ({
     marginBottom: 40,
     height: 65
   },
-  positive: {
-  	color: 'green'
-  },
-  negative: {
-  	color: 'red'
-  },
   card_value: {
 	fontWeight: 'bold'
 },
@@ -125,9 +113,6 @@ const useStyles = makeStyles(theme => ({
   negative: {
     color: 'red'
   },
-  card_value: {
-  fontWeight: 'bold'
-},
 
   table: {
     minWidth: 750,
@@ -160,14 +145,15 @@ export default function AllCities() {
 
   useEffect(() => {
     getAndamento();
-  }, []);
+    setCount(andamentoCompleto.length-1)
+  }, [andamentoCompleto.length]);
 
   const getAndamento = async () => {
       let response = await fetch('https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json');
       let responseJson = await response.json();
+      
       const filter_response = responseJson.filter(o => o.data === responseJson[responseJson.length - 1].data)
       setAndamento(filter_response)
-      console.log(filter_response);
       setAndamentoCompleto(responseJson)
   }
 
@@ -216,6 +202,32 @@ export default function AllCities() {
     setPlaying( playing => !playing)
   }
 
+  const onChangeSlider = useCallback((event, value) => {
+    setAndamento(andamentoCompleto.filter(o => o.data === andamentoCompleto[value].data))
+    setCount(value);
+    console.log(value)
+  }, [andamentoCompleto])
+
+
+  const getInitialMarks = () => {
+
+    const initialDate = andamentoCompleto.length > 0 ? new Date(andamentoCompleto[0].data) : new Date()
+    const lastDate = andamentoCompleto.length > 0 ? new Date(andamentoCompleto[andamentoCompleto.length-1].data) : new Date()
+
+    return [
+    {
+      value: 0,
+      label:  `${initialDate.getUTCDate()}/${initialDate.getUTCMonth() + 1}`
+    },
+    {
+      value: 566,
+      label: `${lastDate.getUTCDate()}/${lastDate.getUTCMonth() + 1}`
+    }
+    ]
+
+  }
+
+  const marks = getInitialMarks()
 
   return (
     <React.Fragment>
@@ -236,12 +248,25 @@ export default function AllCities() {
 
             <Paper className={classes.paper}>
             <Typography color="primary"
-              style={{ textTransform: "uppercase" }}
+              style={{ textTransform: "uppercase", textAlign: 'center' }}
                gutterBottom>
                  {andamento[0].data}
             </Typography>
+            <Slider
+              onChange={onChangeSlider}
+              aria-labelledby="discrete-slider-small-steps"
+              step={21}
+              style={{
+                 
+              }}
+              marks={marks}
+              min={0}
+              max={andamentoCompleto.length-1}
+              value={count}
+              valueLabelDisplay="off"
+            />
                 <Grid container item xs={10}>
-                  <Grid item xs={12}
+                  <Grid item
                     alignItems="center"
                     justify="flex-start"
                     container
@@ -269,15 +294,15 @@ export default function AllCities() {
                           <option value="dimessi_guariti">Guariti</option>
                           <option value="deceduti">Deceduti</option>
                           <option value="tamponi">Tamponi</option>
-                    </Select>
-                  </FormControl>
-            <Button startIcon={playing ? <PauseIcon/> : <PlayArrowIcon/> }  variant="contained" onClick={handleClick}>
+                  </Select>
+                </FormControl>
+          </Grid>
+          <Button startIcon={playing ? <PauseIcon/> : <PlayArrowIcon/> }  variant="contained" onClick={handleClick}>
             {playing ? 'PAUSE' : 'PLAY'}
             </Button>
-            <Button startIcon={<StopIcon/>} color="secondary" disabled={count === 0} variant="contained" className={classes.button} onClick={resetHandle}>
+            <Button startIcon={<StopIcon/>} color="secondary" disabled={count <= andamentoCompleto.length-21} variant="contained" className={classes.button} onClick={resetHandle}>
               Stop
             </Button>
-          </Grid>
         </Grid>
             </Paper>
             }
@@ -613,7 +638,7 @@ export default function AllCities() {
     <Grid container item xs={10}>
       <Grid item xs={12}>
         <Paper className={classes.paper}>
-          La mappa è stata realizzata basandosi su <a href="https://codepen.io/martinopalladini/pen/vKKMRE" target="_blank">questo progetto</a>
+          La mappa è stata realizzata basandosi su <a href="https://codepen.io/martinopalladini/pen/vKKMRE" target="blank">questo progetto</a>
         </Paper>
       </Grid>
     </Grid>
